@@ -2,6 +2,7 @@ const { app, BrowserWindow, nativeTheme, shell } = require('electron');
 const fs = require('node:fs');
 const path = require('node:path');
 const { registerIpcHandlers } = require('./ipc/index.cjs');
+const { setupAutoUpdate } = require('./services/updateService.cjs');
 
 const rendererUrl = process.env.ELECTRON_RENDERER_URL;
 const iconPath = path.join(__dirname, '../assets/icon.ico');
@@ -36,12 +37,15 @@ function createMainWindow() {
     shell.openExternal(url);
     return { action: 'deny' };
   });
+
+  return mainWindow;
 }
 
 app.whenReady().then(() => {
   nativeTheme.themeSource = 'light';
   registerIpcHandlers(app);
-  createMainWindow();
+  const mainWindow = createMainWindow();
+  setupAutoUpdate({ app, mainWindow });
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {

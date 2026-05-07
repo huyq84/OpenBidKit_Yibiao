@@ -65,6 +65,31 @@
 ### Errors Encountered
 | Error | Attempt | Resolution |
 | --- | --- | --- |
+| 普通 Node 环境 require `updateService.cjs` 时 `electron-updater` 立即访问 Electron app 并报 `Cannot read properties of undefined (reading 'getVersion')` | 第一次模块加载验证 | 将 `electron-updater` 改为 `setupAutoUpdate()` 内、且 `app.isPackaged` 后懒加载 |
+| Windows 本地打包解压 `winCodeSign` 时因当前用户无符号链接权限失败 | 第一次 Windows unpacked 打包验证 | 当前阶段不做签名，关闭 `win.signAndEditExecutable`，避免触发 winCodeSign 资源编辑链路 |
+
+## Current Task: GitHub Release 自动打包与客户端更新检查
+
+### Goal
+为 `client/` 接入基于 GitHub Actions 的 Windows/macOS 自动打包和 GitHub Release 发布；Release 由 `v*` tag 触发并自动生成说明；客户端打包后启动时检查 GitHub Release 更新，询问用户是否下载并安装。当前阶段不做代码签名。
+
+### Phases
+- [completed] 1. 确认当前 Electron 入口、package 配置和 GitHub 仓库信息。
+- [completed] 2. 安装并配置 `electron-builder`、`electron-updater`。
+- [completed] 3. 新增 Main 侧自动更新服务，接入 `app.whenReady()`。
+- [completed] 4. 新增 GitHub Actions Release 工作流，构建 Windows 和 macOS 产物并自动生成 Release notes。
+- [completed] 5. 更新 `client/开发说明.md` 发布与更新说明。
+- [completed] 6. 运行构建、模块加载和配置验证。
+
+### Decisions
+- tag 触发规则使用 `v*`，不加 `client-` 前缀。
+- 第一阶段不做 Windows/macOS 代码签名。
+- Release notes 使用 GitHub 原生 `generate-notes` 生成。
+- 自动更新只在 `app.isPackaged` 打包应用中启用，开发模式跳过。
+
+### Errors Encountered
+| Error | Attempt | Resolution |
+| --- | --- | --- |
 | `contentGenerationTask.cjs` 中 `??` 和 `||` 混用导致 CJS 语法错误 | 第一次模块加载验证 | 将正文内容表达式拆成 `outlineContent` 中间变量 |
 
 ## Current Task: Toolbar 拖动与页面内部滚动

@@ -23,3 +23,6 @@
 - client 现有 `exportService.cjs` 是未实现占位；`preload.cjs` 已暴露 `window.yibiao.export.exportWord(payload)`，但 Main 侧还需要实现保存对话框和 docx 写入。
 - toolbar 与滚动优化调研：全局 `.content-shell` 原先使用底部大 padding 给 toolbar 预留空间，技术方案页通过 `:has(.technical-workbench)` 再额外处理；Step02 和设置页也有页面级底部 padding，会造成内容高度被压缩且不符合悬浮覆盖要求。
 - toolbar 与滚动优化调研：`FloatingToolbar` 同时可由 AppShell 和页面内部渲染；将 `.content-shell` 设为相对定位和隐藏溢出后，页面内部 toolbar 可以继续相对内容区域悬浮，页面内容则由各自根容器或工作区承担内部滚动。
+- GitHub Release 发布调研：当前远程仓库为 `FB208/OpenBidKit_Yibiao`，`electron-builder` 可直接使用 GitHub provider 上传安装包和 `latest.yml` / `latest-mac.yml` 更新元数据。
+- 自动更新实现调研：`electron-updater` 在普通 Node 环境 require 会访问 Electron app，因此必须在 `app.isPackaged` 后懒加载；开发模式跳过更新检查。
+- Windows 本地打包调研：未签名阶段仍可能触发 `winCodeSign` 资源编辑链路，当前 Windows 用户没有创建符号链接权限会导致解压失败；关闭 `win.signAndEditExecutable` 后 NSIS 安装包验证通过。

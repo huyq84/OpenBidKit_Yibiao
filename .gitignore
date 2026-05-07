@@ -19,6 +19,7 @@ requirements_build.txt
 # 前端构建文件（保留源码，忽略构建产物）
 frontend/build/
 backend/static/
+client/release/
 
 # 临时和缓存文件
 *.tmp
