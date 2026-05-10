@@ -101,7 +101,10 @@ const OutlineEdit: React.FC<OutlineEditProps> = ({
         throw new Error('未收到目录生成结果');
       }
 
-      const finalOutline = outlineResult as OutlineData;
+      const finalOutline: OutlineData = {
+        outline: (outlineResult as OutlineData).outline ?? (outlineResult as unknown as OutlineItem[]),
+        project_overview: projectOverview,
+      };
 
       onOutlineGenerated(finalOutline);
       setMessage({ type: 'success', text: '目录结构生成完成' });
