@@ -223,6 +223,7 @@ function SettingsPage({ onDeveloperModeChange }: SettingsPageProps) {
         },
       }));
       setSavedConfig(config);
+      onDeveloperModeChange?.(Boolean(config.developer_mode));
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : '加载客户端配置失败';
       showToast(errorMessage, 'error');
@@ -263,6 +264,14 @@ function SettingsPage({ onDeveloperModeChange }: SettingsPageProps) {
 
   const saveTextConfig = async () => {
     await saveClientConfig(createClientConfig());
+  };
+
+  const updateDeveloperMode = (developerMode: boolean) => {
+    setState((prev) => ({
+      ...prev,
+      general: { ...prev.general, developer_mode: developerMode },
+    }));
+    onDeveloperModeChange?.(developerMode);
   };
 
   const testTextConfig = async () => {
@@ -537,10 +546,7 @@ function SettingsPage({ onDeveloperModeChange }: SettingsPageProps) {
                 <input
                   type="checkbox"
                   checked={state.general.developer_mode}
-                  onChange={(event) => setState((prev) => ({
-                    ...prev,
-                    general: { ...prev.general, developer_mode: event.target.checked },
-                  }))}
+                  onChange={(event) => updateDeveloperMode(event.target.checked)}
                 />
                 <span className="settings-switch-track" aria-hidden="true">
                   <span className="settings-switch-thumb" />
