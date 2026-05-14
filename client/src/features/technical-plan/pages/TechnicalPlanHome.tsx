@@ -5,6 +5,7 @@ import BidAnalysisPage from './BidAnalysisPage';
 import OutlineEditPage from './OutlineEditPage';
 import ContentEditPage from './ContentEditPage';
 import { useTechnicalPlanWorkflow } from '../hooks/useTechnicalPlanWorkflow';
+import { trackPageView } from '../../../shared/analytics/analytics';
 import { FloatingToolbar, ToolbarArrowLeftIcon, ToolbarArrowRightIcon, ToolbarDocumentIcon, useToast } from '../../../shared/ui';
 import type { BackgroundTaskState, TechnicalPlanStep } from '../types';
 import type { OutlineData, OutlineItem, WordExportProgressEvent } from '../../../shared/types';
@@ -134,6 +135,10 @@ function TechnicalPlanHome() {
         : activeIndex >= steps.length - 1
           ? '当前已经是最后一步'
           : `进入${stepLabels[steps[activeIndex + 1]]}`;
+
+  useEffect(() => {
+    trackPageView(`technical-plan/${state.step}`);
+  }, [state.step]);
 
   const switchStep = (step: TechnicalPlanStep) => {
     setState((prev) => ({ ...prev, step }));

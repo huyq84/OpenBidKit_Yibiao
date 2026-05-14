@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import AppRouter from './app/AppRouter';
 import { buildToolbarGroups } from './app/toolbarConfig';
 import AppShell from './components/AppShell';
+import { trackAppOpen, trackPageView } from './shared/analytics/analytics';
 import { FloatingToolbar } from './shared/ui';
 import type { SectionId } from './shared/types/navigation';
 
@@ -11,10 +12,16 @@ function App() {
   const toolbarGroups = buildToolbarGroups({ activeSection, developerMode, onSectionChange: setActiveSection });
 
   useEffect(() => {
+    trackAppOpen();
+
     void window.yibiao?.config.load()
       .then((config) => setDeveloperMode(Boolean(config?.developer_mode)))
       .catch((error) => console.warn('读取开发者模式失败', error));
   }, []);
+
+  useEffect(() => {
+    trackPageView(activeSection);
+  }, [activeSection]);
 
   useEffect(() => {
     if (!developerMode && activeSection === 'developer-test') {
