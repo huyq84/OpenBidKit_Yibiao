@@ -1,10 +1,12 @@
 import * as Dialog from '@radix-ui/react-dialog';
+import { sogplan } from '../../../shared/api/apiClient';
 import { useEffect, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
 import { useToast } from '../../../shared/ui';
 import type { BackgroundTaskState } from '../types';
 import type { KnowledgeBaseIndex, KnowledgeDocument } from '../../knowledge-base/types';
 import type { OutlineData, OutlineItem, OutlineMode } from '../../../shared/types';
+import { ENGINEERING_TYPE_INFO, type EngineeringType } from '../../../shared/prompts/sog/sogPrompts';
 
 interface OutlineEditPageProps {
   projectOverview: string;
@@ -127,6 +129,7 @@ function OutlineEditPage({
   const [progressCollapsed, setProgressCollapsed] = useState(false);
   const [generationDialogOpen, setGenerationDialogOpen] = useState(false);
   const [draftOutlineMode, setDraftOutlineMode] = useState<OutlineMode>(outlineMode);
+  const [draftEngineeringType, setDraftEngineeringType] = useState<EngineeringType | ''>('');
   const [draftKnowledgeDocumentIds, setDraftKnowledgeDocumentIds] = useState<string[]>(referenceKnowledgeDocumentIds);
   const [knowledgeSearch, setKnowledgeSearch] = useState('');
   const [expandedKnowledgeFolderIds, setExpandedKnowledgeFolderIds] = useState<Set<string>>(new Set());
@@ -211,7 +214,7 @@ function OutlineEditPage({
   const loadKnowledgeIndex = async () => {
     try {
       setLoadingKnowledge(true);
-      const data = await window.yibiao?.knowledgeBase.list();
+      const data = await sogplan.knowledgeBase.list();
       setKnowledgeIndex(data || emptyKnowledgeIndex);
       setExpandedKnowledgeFolderIds(getInitialExpandedKnowledgeFolders(data || emptyKnowledgeIndex));
     } catch (error) {
@@ -230,6 +233,7 @@ function OutlineEditPage({
     }
 
     setDraftOutlineMode(outlineMode);
+    setDraftEngineeringType('');
     setDraftKnowledgeDocumentIds(referenceKnowledgeDocumentIds);
     setKnowledgeSearch('');
     setGenerationDialogOpen(true);
@@ -256,11 +260,12 @@ function OutlineEditPage({
       onOutlineModeChange(draftOutlineMode);
       onReferenceKnowledgeDocumentsChange(draftKnowledgeDocumentIds);
       setGenerationDialogOpen(false);
-      await window.yibiao?.tasks.startOutlineGeneration({
+      await sogplan.tasks.startOutlineGeneration({
         overview: projectOverview,
         requirements: techRequirements,
         mode: draftOutlineMode,
         reference_knowledge_document_ids: draftKnowledgeDocumentIds,
+        engineering_type: draftEngineeringType || undefined,
       });
       showToast('目录生成任务已在后台启动', 'success');
     } catch (error) {
@@ -695,6 +700,38 @@ function OutlineEditPage({
           <Dialog.Content className="outline-generation-config-card">
             <Dialog.Title className="sr-only">{outlineData ? '重新生成目录' : '生成目录'}</Dialog.Title>
             <Dialog.Description className="sr-only">选择本次目录生成方式和参考知识库。</Dialog.Description>
+
+            <section className="outline-generation-config-section">
+              <div className="outline-generation-config-head">
+                <strong>工程类型（可选）</strong>
+                <span>{draftEngineeringType ? ENGINEERING_TYPE_INFO[draftEngineeringType]?.name || draftEngineeringType : '未选择'}</span>
+              </div>
+              <div className="outline-generation-mode-list" role="radiogroup" aria-label="工程类型" style={{ gap: '8px' }}>
+                <button
+                  type="button"
+                  className={`outline-generation-mode-card${draftEngineeringType === '' ? ' is-active' : ''}`}
+                  onClick={() => setDraftEngineeringType('')}
+                  disabled={generating}
+                  style={{ minHeight: '56px' }}
+                >
+                  <strong>不指定类型</strong>
+                  <span>由 AI 根据招标文件自行判断工程类型</span>
+                </button>
+                {(Object.keys(ENGINEERING_TYPE_INFO) as EngineeringType[]).map((type) => (
+                  <button
+                    key={type}
+                    type="button"
+                    className={`outline-generation-mode-card${draftEngineeringType === type ? ' is-active' : ''}`}
+                    onClick={() => setDraftEngineeringType(type)}
+                    disabled={generating}
+                    style={{ minHeight: '56px' }}
+                  >
+                    <strong>{ENGINEERING_TYPE_INFO[type].name}</strong>
+                    <span>{ENGINEERING_TYPE_INFO[type].description}</span>
+                  </button>
+                ))}
+              </div>
+            </section>
 
             <section className="outline-generation-config-section">
               <div className="outline-generation-config-head">

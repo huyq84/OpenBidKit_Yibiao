@@ -213,17 +213,17 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({ config, onConfigChange }) => 
               </svg>
             </a>
             
-            {/* 易标图标 */}
+            {/* 标书图标 */}
             <a
               href="https://yibiao.pro"
               target="_blank"
               rel="noopener noreferrer"
               className="hover:opacity-75 transition-opacity"
-              title="易标官网"
+              title="标书官网"
             >
               <img 
                 src="/yibiao.png" 
-                alt="易标" 
+                alt="标书" 
                 className="w-6 h-6" 
                 onError={(e) => {
                   e.currentTarget.style.display = 'none';

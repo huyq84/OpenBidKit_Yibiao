@@ -1,9 +1,9 @@
 function logInfo(...args) {
-  console.log('[yibiao-client]', ...args);
+  console.log('[sog-plan-client]', ...args);
 }
 
 function logError(...args) {
-  console.error('[yibiao-client]', ...args);
+  console.error('[sog-plan-client]', ...args);
 }
 
 module.exports = {

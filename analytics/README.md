@@ -1,5 +1,7 @@
 # 埋点统计部署手册
 
+**私有项目 - 不在开源仓库保存密钥**
+
 本目录维护通用匿名埋点统计服务，采用 `Cloudflare Workers + Analytics Engine + Workers Static Assets`。
 
 公开仓库只保存源码，不保存 `ACCOUNT_ID`、`ADMIN_TOKEN`、`ANALYTICS_API_TOKEN` 等密钥。

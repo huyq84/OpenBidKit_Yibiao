@@ -1,6 +1,6 @@
 import { safeJsonParse } from '../utils/json';
 
-const WORKSPACE_KEY = 'yibiao:client:workspace:v1';
+const WORKSPACE_KEY = 'sogplan:client:workspace:v1';
 
 export interface WorkspaceState {
   activeSection?: string;

@@ -3,19 +3,18 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { pathToFileURL } = require('node:url');
 const { registerIpcHandlers } = require('./ipc/index.cjs');
-const { setupAutoUpdate, triggerUpdateDownload, quitAndInstall } = require('./services/updateService.cjs');
 const { getGeneratedImagesDir } = require('./utils/paths.cjs');
 
 const rendererUrl = process.env.ELECTRON_RENDERER_URL;
 const iconPath = path.join(__dirname, '../assets/icon.ico');
 
 protocol.registerSchemesAsPrivileged([{
-  scheme: 'yibiao-asset',
+  scheme: 'sog-asset',
   privileges: { standard: true, secure: true, supportFetchAPI: true },
 }]);
 
 function registerAssetProtocol() {
-  protocol.handle('yibiao-asset', (request) => {
+  protocol.handle('sog-asset', (request) => {
     try {
       const url = new URL(request.url);
       if (url.hostname !== 'generated-images') {
@@ -51,7 +50,7 @@ function createMainWindow() {
     minWidth: 1040,
     minHeight: 720,
     backgroundColor: '#f8fafd',
-    title: '易标投标工具箱',
+    title: '施工组织设计助手',
     icon: fs.existsSync(iconPath) ? iconPath : undefined,
     titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'default',
     webPreferences: {
@@ -82,8 +81,7 @@ app.whenReady().then(() => {
   nativeTheme.themeSource = 'light';
   registerAssetProtocol();
   const mainWindow = createMainWindow();
-  registerIpcHandlers({ app, mainWindow, triggerUpdateDownload, quitAndInstall });
-  setupAutoUpdate({ app, mainWindow });
+  registerIpcHandlers({ app, mainWindow });
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {

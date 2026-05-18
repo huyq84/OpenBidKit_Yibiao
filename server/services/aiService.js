@@ -104,13 +104,22 @@ function createAiService({ logsDir, configStore }) {
       for (const line of lines) {
         if (line.startsWith('data: ')) {
           const data = line.slice(6);
+          console.error('[AI] raw SSE data:', JSON.stringify(data).slice(0, 200));
           if (data === '[DONE]') {
             onEvent({ type: 'done' });
           } else {
             try {
               const parsed = JSON.parse(data);
-              const content = parsed.choices?.[0]?.delta?.content || '';
-              if (content) onEvent({ type: 'chunk', chunk: content });
+              // 剥离 <think>...</think> 思考标签
+              let content = (parsed.choices?.[0]?.delta?.content || '');
+              // 剥离 <think>...</think> 或 ‹think>...‹/think>› 思考标签（‹ = U+2039）
+              content = content
+                .replace(/\u2039think>[\s\S]*?\u2039\/think>/gi, '')    // ‹think>...‹/think>
+                .replace(/<think>[\s\S]*?<\/think>/gi, '');             // <think>...</think>
+              console.error('[AI] parsed delta content:', JSON.stringify(content).slice(0, 100), 'choices[0]:', JSON.stringify(parsed.choices?.[0]).slice(0, 100));
+              if (content) {
+                onEvent({ type: 'content', content });
+              }
             } catch (e) {
               console.error('[AI] chatStream parse error:', e.message);
             }

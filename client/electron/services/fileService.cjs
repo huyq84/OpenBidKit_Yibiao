@@ -211,6 +211,117 @@ function makeDataId(fileName) {
   return fileName.replace(/[^A-Za-z0-9_.-]+/g, '_').slice(0, 96) || 'document';
 }
 
+async function convertToPdf(filePath) {
+  const ext = path.extname(filePath).toLowerCase();
+  
+  // 如果已经是 PDF，直接返回原路径
+  if (ext === '.pdf') {
+    return filePath;
+  }
+  
+  // 查找 LibreOffice
+  const soffice = await findLibreOfficeCommand();
+  if (!soffice) {
+    console.warn('未找到 LibreOffice，无法转换为 PDF');
+    return null;
+  }
+  
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'doc2pdf-'));
+  try {
+    const fileName = path.basename(filePath, ext);
+    const outputPath = path.join(tempDir, `${fileName}.pdf`);
+    
+    await runLibreOfficeConvert(soffice, filePath, tempDir, 'pdf');
+    
+    if (await fs.access(outputPath).then(() => true).catch(() => false)) {
+      return outputPath;
+    }
+    
+    console.warn(`LibreOffice 未生成 PDF 文件: ${outputPath}`);
+    return null;
+  } catch (error) {
+    console.warn('转换 PDF 失败:', error.message);
+    return null;
+  } finally {
+    // 不删除临时目录，让前端使用完后再清理
+  }
+}
+
+async function runLibreOfficeConvert(soffice, inputPath, outputDir, format = 'docx') {
+  return new Promise((resolve, reject) => {
+    const args = [
+      '--headless',
+      '--convert-to', format,
+      '--outdir', outputDir,
+      inputPath,
+    ];
+    
+    const child = spawn(soffice, args);
+    
+    let errorData = '';
+    child.stderr.on('data', (data) => {
+      errorData += data.toString();
+    });
+    
+    child.on('close', (code) => {
+      if (code === 0) {
+        resolve();
+      } else {
+        reject(new Error(`LibreOffice 转换失败 (代码: ${code}): ${errorData}`));
+      }
+    });
+    
+    child.on('error', (err) => {
+      reject(err);
+    });
+  });
+}
+
+async function findLibreOfficeCommand() {
+  const possiblePaths = [
+    'soffice',
+    'soffice.exe',
+    '/usr/bin/soffice',
+    '/Applications/LibreOffice.app/Contents/MacOS/soffice',
+    'C:\\Program Files\\LibreOffice\\program\\soffice.exe',
+    'C:\\Program Files (x86)\\LibreOffice\\program\\soffice.exe',
+  ];
+  
+  for (const cmd of possiblePaths) {
+    try {
+      const result = await exec(cmd, ['--version']);
+      if (result.stdout.includes('LibreOffice')) {
+        return cmd;
+      }
+    } catch {
+      // 继续尝试下一个
+    }
+  }
+  
+  return null;
+}
+
+async function exec(cmd, args = []) {
+  return new Promise((resolve, reject) => {
+    const { spawn } = require('child_process');
+    const child = spawn(cmd, args);
+    
+    let stdout = '';
+    let stderr = '';
+    
+    child.stdout.on('data', (data) => { stdout += data.toString(); });
+    child.stderr.on('data', (data) => { stderr += data.toString(); });
+    
+    child.on('close', (code) => {
+      if (code === 0) {
+        resolve({ stdout, stderr });
+      } else {
+        reject(new Error(`Command failed: ${cmd} ${args.join(' ')}`));
+      }
+    });
+  });
+}
+
 async function parseDocument(filePath, config) {
   const provider = config.file_parser?.provider || 'local';
   if (provider === 'mineru-agent-api') {
@@ -254,11 +365,17 @@ function createFileService({ configStore } = {}) {
         return { success: false, message: '未提取到有效 Markdown 内容，请检查文件内容' };
       }
 
+      // 尝试将文件转换为 PDF，用于统一预览
+      const pdfPath = await convertToPdf(filePath);
+
       return {
         success: true,
         message: '文件解析完成',
         file_content: fileContent,
         file_name: path.basename(filePath),
+        file_path: filePath,
+        file_extension: ext,
+        pdf_path: pdfPath,
         parser_provider: provider,
         parser_label: parserLabels[provider] || '本地解析',
       };

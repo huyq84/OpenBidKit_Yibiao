@@ -1,0 +1,315 @@
+{
+  "name": "房屋建筑工程",
+  "description": "适用于住宅楼、办公楼、商业综合体、学校、医院等房建项目",
+  "outline_template": [
+    {
+      "id": "1",
+      "title": "工程概况",
+      "description": "工程基本情况介绍",
+      "children": [
+        {
+          "id": "1.1",
+          "title": "工程名称与建设地点",
+          "description": ""
+        },
+        {
+          "id": "1.2",
+          "title": "工程规模与结构形式",
+          "description": ""
+        },
+        {
+          "id": "1.3",
+          "title": "工程特点与难点分析",
+          "description": ""
+        },
+        {
+          "id": "1.4",
+          "title": "施工条件",
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "2",
+      "title": "施工部署",
+      "description": "施工总体安排",
+      "children": [
+        {
+          "id": "2.1",
+          "title": "项目管理组织机构",
+          "description": ""
+        },
+        {
+          "id": "2.2",
+          "title": "施工段划分与流水施工",
+          "description": ""
+        },
+        {
+          "id": "2.3",
+          "title": "主要施工机械设备配置",
+          "description": ""
+        },
+        {
+          "id": "2.4",
+          "title": "劳动力配置计划",
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "3",
+      "title": "施工进度计划",
+      "description": "工期安排与进度控制",
+      "children": [
+        {
+          "id": "3.1",
+          "title": "总工期目标与节点工期",
+          "description": ""
+        },
+        {
+          "id": "3.2",
+          "title": "施工进度计划编制",
+          "description": ""
+        },
+        {
+          "id": "3.3",
+          "title": "进度控制措施",
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "4",
+      "title": "主要分部分项工程施工方案",
+      "description": "关键工序施工方法",
+      "children": [
+        {
+          "id": "4.1",
+          "title": "地基与基础工程",
+          "description": ""
+        },
+        {
+          "id": "4.2",
+          "title": "主体结构工程",
+          "description": ""
+        },
+        {
+          "id": "4.3",
+          "title": "装饰装修工程",
+          "description": ""
+        },
+        {
+          "id": "4.4",
+          "title": "防水工程",
+          "description": ""
+        },
+        {
+          "id": "4.5",
+          "title": "给排水与消防工程",
+          "description": ""
+        },
+        {
+          "id": "4.6",
+          "title": "电气与智能建筑工程",
+          "description": ""
+        },
+        {
+          "id": "4.7",
+          "title": "通风与空调工程",
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "5",
+      "title": "施工现场平面布置",
+      "description": "临建与场地规划",
+      "children": [
+        {
+          "id": "5.1",
+          "title": "平面布置原则",
+          "description": ""
+        },
+        {
+          "id": "5.2",
+          "title": "生产区布置",
+          "description": ""
+        },
+        {
+          "id": "5.3",
+          "title": "办公区与生活区布置",
+          "description": ""
+        },
+        {
+          "id": "5.4",
+          "title": "临时水电布置",
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "6",
+      "title": "质量保证措施",
+      "description": "质量控制体系",
+      "children": [
+        {
+          "id": "6.1",
+          "title": "质量目标",
+          "description": ""
+        },
+        {
+          "id": "6.2",
+          "title": "质量管理体系",
+          "description": ""
+        },
+        {
+          "id": "6.3",
+          "title": "关键工序质量控制",
+          "description": ""
+        },
+        {
+          "id": "6.4",
+          "title": "质量通病防治措施",
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "7",
+      "title": "安全保证措施",
+      "description": "安全管理体系",
+      "children": [
+        {
+          "id": "7.1",
+          "title": "安全管理目标",
+          "description": ""
+        },
+        {
+          "id": "7.2",
+          "title": "安全管理体系",
+          "description": ""
+        },
+        {
+          "id": "7.3",
+          "title": "施工现场安全措施",
+          "description": ""
+        },
+        {
+          "id": "7.4",
+          "title": "应急救援预案",
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "8",
+      "title": "文明施工与环境保护",
+      "description": "标准化工地建设",
+      "children": [
+        {
+          "id": "8.1",
+          "title": "文明施工目标与标准",
+          "description": ""
+        },
+        {
+          "id": "8.2",
+          "title": "环境保护措施",
+          "description": ""
+        },
+        {
+          "id": "8.3",
+          "title": "节能与减排措施",
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "9",
+      "title": "季节性施工措施",
+      "description": "雨季/夏季/冬季施工",
+      "children": [
+        {
+          "id": "9.1",
+          "title": "雨季施工措施",
+          "description": ""
+        },
+        {
+          "id": "9.2",
+          "title": "夏季高温施工措施",
+          "description": ""
+        },
+        {
+          "id": "9.3",
+          "title": "冬季施工措施",
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "10",
+      "title": "降低成本措施",
+      "description": "成本控制",
+      "children": [
+        {
+          "id": "10.1",
+          "title": "成本控制目标",
+          "description": ""
+        },
+        {
+          "id": "10.2",
+          "title": "技术经济指标",
+          "description": ""
+        },
+        {
+          "id": "10.3",
+          "title": "降低成本具体措施",
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "11",
+      "title": "工程技术管理体系",
+      "description": "技术管理制度",
+      "children": [
+        {
+          "id": "11.1",
+          "title": "技术管理组织架构",
+          "description": ""
+        },
+        {
+          "id": "11.2",
+          "title": "技术管理制度",
+          "description": ""
+        },
+        {
+          "id": "11.3",
+          "title": "新技术新工艺应用",
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "12",
+      "title": "工程验收条件",
+      "description": "验收标准与程序",
+      "children": [
+        {
+          "id": "12.1",
+          "title": "验收依据与标准",
+          "description": ""
+        },
+        {
+          "id": "12.2",
+          "title": "分部工程验收条件",
+          "description": ""
+        },
+        {
+          "id": "12.3",
+          "title": "竣工验收与交付",
+          "description": ""
+        }
+      ]
+    }
+  ]
+}

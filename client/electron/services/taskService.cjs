@@ -100,6 +100,7 @@ function createTaskService({ aiService, workspaceStore, knowledgeBaseService }) 
       return startTask('outline-generation', payload, runOutlineGenerationTask, {
         outlineMode: payload?.mode,
         referenceKnowledgeDocumentIds: Array.isArray(payload?.reference_knowledge_document_ids) ? payload.reference_knowledge_document_ids : [],
+        engineeringType: payload?.engineering_type || '',
       });
     },
     startContentGeneration(payload) {

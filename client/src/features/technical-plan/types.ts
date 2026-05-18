@@ -1,6 +1,6 @@
 import type { OutlineData, OutlineMode } from '../../shared/types';
 
-export type TechnicalPlanStep = 'document-analysis' | 'bid-analysis' | 'outline-generation' | 'content-edit' | 'expand';
+export type TechnicalPlanStep = 'document-analysis' | 'pre-analysis' | 'bid-analysis' | 'outline-generation' | 'content-edit' | 'expand';
 export type BidAnalysisMode = 'key' | 'full';
 export type BidAnalysisTaskStatus = 'idle' | 'running' | 'success' | 'error';
 export type BackgroundTaskType = 'bid-analysis' | 'outline-generation' | 'content-generation';
@@ -69,6 +69,25 @@ export interface ContentGenerationSectionState {
   updated_at?: string;
 }
 
+export interface HighlightAnnotation {
+  id: string;
+  category: string;
+  highlightText: string;
+  explanation: string;
+  sourceLocation: string;
+  sourceLine?: number;
+  isManual: boolean;
+  isVerified: boolean;
+  createdAt: string;
+}
+
+export interface PreAnalysisState {
+  annotations: HighlightAnnotation[];
+  preAnalysisTask?: BackgroundTaskState;
+  verifiedCount: number;
+  totalCount: number;
+}
+
 export type ContentGenerationSections = Record<string, ContentGenerationSectionState>;
 
 export type ContentIllustrationType = 'ai' | 'mermaid' | 'none';
@@ -124,4 +143,8 @@ export interface TechnicalPlanState {
   contentGenerationSections: ContentGenerationSections;
   contentGenerationPlans: ContentGenerationPlans;
   outlineData: OutlineData | null;
+  preAnalysisState?: PreAnalysisState;
+  originalFilePath?: string;
+  originalFileExtension?: string;
+  pdfPath?: string;
 }

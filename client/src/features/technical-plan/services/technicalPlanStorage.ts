@@ -1,4 +1,5 @@
 import type { TechnicalPlanState, TechnicalPlanStep } from '../types';
+import { sogplan } from '../../../shared/api/apiClient';
 
 const validSteps: TechnicalPlanStep[] = [
   'document-analysis',
@@ -14,7 +15,7 @@ function isTechnicalPlanState(state: TechnicalPlanState | null): state is Techni
 
 export const technicalPlanStorage = {
   async load(): Promise<TechnicalPlanState | null> {
-    const state = await window.yibiao?.workspace.loadTechnicalPlan<TechnicalPlanState>();
+    const state = await sogplan.workspace.loadTechnicalPlan<TechnicalPlanState>();
 
     if (!isTechnicalPlanState(state || null)) {
       return null;
@@ -24,6 +25,6 @@ export const technicalPlanStorage = {
   },
 
   async save(state: TechnicalPlanState) {
-    await window.yibiao?.workspace.saveTechnicalPlan(state);
+    await sogplan.workspace.saveTechnicalPlan(state);
   },
 };

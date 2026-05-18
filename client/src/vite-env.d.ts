@@ -1,11 +1,11 @@
 /// <reference types="vite/client" />
 
-import type { YibiaoBridge } from './shared/types';
+import type { SogPlanBridge } from './shared/types';
 
 declare global {
   interface Window {
-    yibiao?: YibiaoBridge;
-    yibiaoClient?: {
+    sogplan?: SogPlanBridge;
+    sogplanClient?: {
       appName: string;
       platform: string;
     };

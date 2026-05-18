@@ -5,6 +5,7 @@ import AppShell from './components/AppShell';
 import { trackAppOpen, trackPageView } from './shared/analytics/analytics';
 import { FloatingToolbar } from './shared/ui';
 import type { SectionId } from './shared/types/navigation';
+import { sogplan } from './shared/api/apiClient';
 
 function App() {
   const [activeSection, setActiveSection] = useState<SectionId>('technical-plan');
@@ -14,7 +15,7 @@ function App() {
   useEffect(() => {
     trackAppOpen();
 
-    void window.yibiao?.config.load()
+    void sogplan.config.load()
       .then((config) => setDeveloperMode(Boolean(config?.developer_mode)))
       .catch((error) => console.warn('读取开发者模式失败', error));
   }, []);

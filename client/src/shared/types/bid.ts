@@ -15,6 +15,9 @@ export interface FileImportResult {
   message: string;
   file_content?: string;
   file_name?: string;
+  file_path?: string;
+  file_extension?: string;
+  pdf_path?: string;
   parser_provider?: string;
   parser_label?: string;
   old_outline?: string;

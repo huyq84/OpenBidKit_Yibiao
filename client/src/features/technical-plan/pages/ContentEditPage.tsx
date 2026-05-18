@@ -1,4 +1,5 @@
 import * as Dialog from '@radix-ui/react-dialog';
+import { sogplan } from '../../../shared/api/apiClient';
 import * as Popover from '@radix-ui/react-popover';
 import * as Switch from '@radix-ui/react-switch';
 import { Children, isValidElement, memo, useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
@@ -91,7 +92,7 @@ function normalizeImageStats(stats?: Partial<ContentImageStats>): ContentImageSt
 }
 
 function markdownUrlTransform(value: string) {
-  return value.startsWith('yibiao-asset://') ? value : defaultUrlTransform(value);
+  return value.startsWith('sog-asset://') ? value : defaultUrlTransform(value);
 }
 
 function collectLeafItems(items: OutlineItem[]): OutlineItem[] {
@@ -384,7 +385,7 @@ function ContentEditPage({
   }, [firstLeafId, outlineData, selectedItemId]);
 
   useEffect(() => {
-    window.yibiao?.config.load()
+    sogplan.config.load()
       .then((config) => {
         setDeveloperMode(Boolean(config.developer_mode));
         setImageModelStatus(config.image_model?.status || 'untested');
@@ -408,7 +409,7 @@ function ContentEditPage({
     }
 
     try {
-      const config = await window.yibiao?.config.load();
+      const config = await sogplan.config.load();
       const nextStatus = config?.image_model?.status || 'untested';
       const available = nextStatus === 'available';
       setImageModelStatus(nextStatus);
@@ -447,7 +448,7 @@ function ContentEditPage({
     }
 
     try {
-      const config = await window.yibiao?.config.load();
+      const config = await sogplan.config.load();
       const nextImageModelStatus = config?.image_model?.status || 'untested';
       const nextImageModelAvailable = nextImageModelStatus === 'available';
       setImageModelStatus(nextImageModelStatus);
@@ -460,7 +461,7 @@ function ContentEditPage({
         setIsPreviewing(false);
         setDraftContent('');
       }
-      await window.yibiao?.tasks.startContentGeneration({
+      await sogplan.tasks.startContentGeneration({
         outlineData: nextOutlineData,
         projectOverview: nextOutlineData.project_overview || projectOverview,
         reference_knowledge_document_ids: referenceKnowledgeDocumentIds,
@@ -486,13 +487,13 @@ function ContentEditPage({
     }
 
     try {
-      const config = await window.yibiao?.config.load();
+      const config = await sogplan.config.load();
       const nextImageModelStatus = config?.image_model?.status || 'untested';
       const nextImageModelAvailable = nextImageModelStatus === 'available';
       const savedGenerationOptions = normalizeGenerationOptions(contentGenerationOptions, nextImageModelAvailable, leaves.length);
       setImageModelStatus(nextImageModelStatus);
       const shouldRealTimeRender = config?.real_time_render === true;
-      await window.yibiao?.tasks.startContentGeneration({
+      await sogplan.tasks.startContentGeneration({
         outlineData,
         projectOverview: outlineData.project_overview || projectOverview,
         reference_knowledge_document_ids: referenceKnowledgeDocumentIds,

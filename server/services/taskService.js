@@ -4,6 +4,7 @@ const taskFields = {
   'bid-analysis': 'bidAnalysisTask',
   'outline-generation': 'outlineGenerationTask',
   'content-generation': 'contentGenerationTask',
+  'pre-analysis': 'preAnalysisTask',
 };
 
 function getTaskField(type) {
@@ -92,6 +93,7 @@ function createTaskService({ aiService, workspaceStore, knowledgeBaseService }) 
     if (type === 'bid-analysis') runner = runBidAnalysisTask;
     else if (type === 'outline-generation') runner = runOutlineGenerationTask;
     else if (type === 'content-generation') runner = runContentGenerationTask;
+    else if (type === 'pre-analysis') runner = runPreAnalysisTask;
     console.error('[TASK] runner type:', typeof runner, 'is function:', typeof runner === 'function');
 
     if (runner) {
@@ -124,6 +126,7 @@ function createTaskService({ aiService, workspaceStore, knowledgeBaseService }) 
   const runBidAnalysisTask = loadRunner('runBidAnalysisTask', './bidAnalysisTask.js');
   const runOutlineGenerationTask = loadRunner('runOutlineGenerationTask', './outlineGenerationTask.js');
   const runContentGenerationTask = loadRunner('runContentGenerationTask', './contentGenerationTask.js');
+  const runPreAnalysisTask = loadRunner('runPreAnalysisTask', './preAnalysisTask.js');
 
   return { startTask, getActiveTasks, subscribe, unsubscribe };
 }

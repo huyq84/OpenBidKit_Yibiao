@@ -1,0 +1,293 @@
+{
+  "name": "公路工程",
+  "description": "适用于高速公路、一级公路、二级公路等公路建设项目",
+  "outline_template": [
+    {
+      "id": "1",
+      "title": "工程概况",
+      "description": "工程基本情况",
+      "children": [
+        {
+          "id": "1.1",
+          "title": "工程名称与建设地点",
+          "description": ""
+        },
+        {
+          "id": "1.2",
+          "title": "技术标准与建设规模",
+          "description": ""
+        },
+        {
+          "id": "1.3",
+          "title": "沿线自然条件",
+          "description": ""
+        },
+        {
+          "id": "1.4",
+          "title": "工程特点与难点分析",
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "2",
+      "title": "施工部署",
+      "description": "施工总体安排",
+      "children": [
+        {
+          "id": "2.1",
+          "title": "项目管理组织机构",
+          "description": ""
+        },
+        {
+          "id": "2.2",
+          "title": "施工总平面布置",
+          "description": ""
+        },
+        {
+          "id": "2.3",
+          "title": "施工力量部署",
+          "description": ""
+        },
+        {
+          "id": "2.4",
+          "title": "机械设备配置",
+          "description": ""
+        },
+        {
+          "id": "2.5",
+          "title": "劳动力配置计划",
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "3",
+      "title": "施工进度计划",
+      "description": "工期安排",
+      "children": [
+        {
+          "id": "3.1",
+          "title": "总工期目标",
+          "description": ""
+        },
+        {
+          "id": "3.2",
+          "title": "施工进度计划",
+          "description": ""
+        },
+        {
+          "id": "3.3",
+          "title": "工期保证措施",
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "4",
+      "title": "主要分部分项工程施工方案",
+      "description": "施工方法",
+      "children": [
+        {
+          "id": "4.1",
+          "title": "路基工程",
+          "description": ""
+        },
+        {
+          "id": "4.2",
+          "title": "路面工程",
+          "description": ""
+        },
+        {
+          "id": "4.3",
+          "title": "桥梁工程",
+          "description": ""
+        },
+        {
+          "id": "4.4",
+          "title": "隧道工程",
+          "description": ""
+        },
+        {
+          "id": "4.5",
+          "title": "互通立交工程",
+          "description": ""
+        },
+        {
+          "id": "4.6",
+          "title": "交通工程及沿线设施",
+          "description": ""
+        },
+        {
+          "id": "4.7",
+          "title": "防护及排水工程",
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "5",
+      "title": "特殊路基处理方案",
+      "description": "软基/高填方等",
+      "children": [
+        {
+          "id": "5.1",
+          "title": "软土地基处理",
+          "description": ""
+        },
+        {
+          "id": "5.2",
+          "title": "高填方路堤施工",
+          "description": ""
+        },
+        {
+          "id": "5.3",
+          "title": "滑坡地段处理",
+          "description": ""
+        },
+        {
+          "id": "5.4",
+          "title": "岩溶地段处理",
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "6",
+      "title": "质量保证措施",
+      "description": "质量控制",
+      "children": [
+        {
+          "id": "6.1",
+          "title": "质量目标",
+          "description": ""
+        },
+        {
+          "id": "6.2",
+          "title": "质量管理体系",
+          "description": ""
+        },
+        {
+          "id": "6.3",
+          "title": "路基路面质量控制",
+          "description": ""
+        },
+        {
+          "id": "6.4",
+          "title": "桥梁隧道质量控制",
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "7",
+      "title": "安全保证措施",
+      "description": "安全管理",
+      "children": [
+        {
+          "id": "7.1",
+          "title": "安全管理目标",
+          "description": ""
+        },
+        {
+          "id": "7.2",
+          "title": "安全管理体系",
+          "description": ""
+        },
+        {
+          "id": "7.3",
+          "title": "施工现场安全措施",
+          "description": ""
+        },
+        {
+          "id": "7.4",
+          "title": "桥梁隧道施工安全要点",
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "8",
+      "title": "文明施工与环境保护",
+      "description": "标准化管理",
+      "children": [
+        {
+          "id": "8.1",
+          "title": "文明施工标准",
+          "description": ""
+        },
+        {
+          "id": "8.2",
+          "title": "环境保护措施",
+          "description": ""
+        },
+        {
+          "id": "8.3",
+          "title": "水土保持方案",
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "9",
+      "title": "季节性施工措施",
+      "description": "特殊气候施工",
+      "children": [
+        {
+          "id": "9.1",
+          "title": "雨季施工措施",
+          "description": ""
+        },
+        {
+          "id": "9.2",
+          "title": "冬季施工措施",
+          "description": ""
+        },
+        {
+          "id": "9.3",
+          "title": "高温季节施工措施",
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "10",
+      "title": "降低成本措施",
+      "description": "成本控制",
+      "children": [
+        {
+          "id": "10.1",
+          "title": "成本控制目标",
+          "description": ""
+        },
+        {
+          "id": "10.2",
+          "title": "技术经济指标",
+          "description": ""
+        },
+        {
+          "id": "10.3",
+          "title": "降低成本措施",
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "11",
+      "title": "工程验收条件",
+      "description": "验收标准",
+      "children": [
+        {
+          "id": "11.1",
+          "title": "验收依据与标准",
+          "description": ""
+        },
+        {
+          "id": "11.2",
+          "title": "验收程序与条件",
+          "description": ""
+        }
+      ]
+    }
+  ]
+}

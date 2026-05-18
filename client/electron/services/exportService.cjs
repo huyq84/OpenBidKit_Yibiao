@@ -451,7 +451,7 @@ async function loadImage(source, context = {}) {
     };
   }
 
-  if (/^yibiao-asset:\/\//i.test(url)) {
+if (/^sog-asset:\/\/\//i.test(url)) {
     const assetPath = resolveAssetImagePath(url);
     if (!assetPath || !fs.existsSync(assetPath)) {
       return null;

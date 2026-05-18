@@ -1,23 +1,18 @@
 import type { AiStreamEvent, ChatCompletionRequest, JsonCompletionRequest } from '../types';
-
-const getBridge = () => {
-  if (!window.yibiao) {
-    throw new Error('客户端桥接层未初始化');
-  }
-
-  return window.yibiao;
-};
+import { sogplan } from '../api/apiClient';
 
 export const aiClient = {
   chat(request: ChatCompletionRequest): Promise<string> {
-    return getBridge().ai.chat(request);
+    return sogplan.ai.chat(request);
   },
 
   requestJson<TResult = unknown>(request: JsonCompletionRequest): Promise<TResult> {
-    return getBridge().ai.requestJson<TResult>(request);
+    return sogplan.ai.requestJson<TResult>(request);
   },
 
   streamChat(request: ChatCompletionRequest, onEvent: (event: AiStreamEvent) => void): () => void {
-    return getBridge().ai.streamChat(request, onEvent);
+    // sogplan.ai.streamChat 返回 void，这里包装为取消函数
+    sogplan.ai.streamChat(request, onEvent);
+    return () => {}; // Web 版 SSE 不需要取消
   },
 };

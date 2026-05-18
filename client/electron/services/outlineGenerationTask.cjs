@@ -72,9 +72,35 @@ function loadOutlineKnowledgeItems(knowledgeBaseService, documentIds, log) {
   }
 }
 
-function outlineSystemPrompt() {
-  return `你是一个专业的标书编写专家。根据提供的项目概述和技术评分要求，生成投标文件中技术标部分的目录结构。
+// ============================================================
+// 工程类型目录模板加载
+// ============================================================
+
+const TEMPLATE_MAP = {
+  '房屋建筑': '房屋建筑_目录模板.json',
+  '市政道路': '市政道路_目录模板.json',
+  '园林绿化': '园林绿化_目录模板.json',
+  '公路工程': '公路工程_目录模板.json',
+};
+
+function loadEngineeringTemplate(engineeringType) {
+  if (!engineeringType || !TEMPLATE_MAP[engineeringType]) return null;
+  try {
+    // __dirname = client/electron/services/
+    const templatePath = require('path').resolve(__dirname, '../../src/shared/prompts/sog', TEMPLATE_MAP[engineeringType]);
+    return require(templatePath);
+  } catch {
+    return null;
+  }
+}
+
+function outlineSystemPrompt(templateContext) {
+  const templateSection = templateContext
+    ? `\n\n## 工程类型模板目录（请在此基础上根据招标文件调整，不要照搬模板）\n${templateContext}`
+    : '';
+  return `你是一个专业的施工组织设计专家。根据提供的项目概述和技术评分要求，生成投标文件中技术标部分的目录结构。
 如果用户提供了自己编写的目录，你要保证目录满足技术评分要求，并充分结合用户自己编写的目录。
+${templateSection}
 
 要求：
 1. 目录结构要全面覆盖技术标的所有必要章节
@@ -133,9 +159,9 @@ JSON 格式要求：
 }`;
 }
 
-function generateOutlineMessages({ overview, requirements, suggestions }) {
+function generateOutlineMessages({ overview, requirements, suggestions, templateContext }) {
   return [
-    { role: 'system', content: outlineSystemPrompt() },
+    { role: 'system', content: outlineSystemPrompt(templateContext) },
     { role: 'user', content: `项目概述：\n${overview}` },
     { role: 'user', content: `技术评分要求：\n${requirements}` },
     { role: 'user', content: `请生成完整的技术标目录结构，确保覆盖所有技术评分要点。${formatSuggestions(suggestions)}` },
@@ -984,6 +1010,11 @@ async function runOutlineGenerationTask({ aiService, workspaceStore, knowledgeBa
   }
 
   const referenceKnowledgeDocumentIds = normalizeReferenceDocumentIds(payload);
+  const engineeringType = payload.engineeringType || '';
+  const templateData = loadEngineeringTemplate(engineeringType);
+  const templateOutline = templateData?.outline_template || null;
+  const templateContext = templateOutline ? JSON.stringify(templateOutline, null, 2) : null;
+
   let technicalPlan = workspaceStore.updateTechnicalPlan({
     outlineMode: payload.mode,
     referenceKnowledgeDocumentIds,
@@ -992,6 +1023,9 @@ async function runOutlineGenerationTask({ aiService, workspaceStore, knowledgeBa
   updateTask({ status: 'running', progress: 5, logs }, technicalPlan);
   const taskPayload = {
     ...payload,
+    engineeringType,
+    templateOutline,
+    templateContext,
     reference_knowledge_document_ids: referenceKnowledgeDocumentIds,
   };
   let outline = taskPayload.mode === 'aligned' ? await alignedWorkflow(aiService, taskPayload, log) : await freeWorkflow(aiService, taskPayload, log);

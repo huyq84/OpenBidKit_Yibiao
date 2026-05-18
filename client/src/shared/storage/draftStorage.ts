@@ -1,8 +1,8 @@
 import type { BidProjectDraft } from '../types';
 import { safeJsonParse } from '../utils/json';
 
-const DRAFT_KEY = 'yibiao:client:draft:v1';
-const CONTENT_BY_ID_KEY = 'yibiao:client:contentById:v1';
+const DRAFT_KEY = 'sogplan:client:draft:v1';
+const CONTENT_BY_ID_KEY = 'sogplan:client:contentById:v1';
 
 export type DraftState = Partial<BidProjectDraft>;
 export type ContentById = Record<string, string>;

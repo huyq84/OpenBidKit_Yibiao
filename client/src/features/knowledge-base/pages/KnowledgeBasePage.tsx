@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { sogplan } from '../../../shared/api/apiClient';
 import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
 import remarkGfm from 'remark-gfm';
@@ -54,7 +55,7 @@ function KnowledgeBasePage() {
     void loadDeveloperMode();
     window.addEventListener('focus', loadDeveloperMode);
     document.addEventListener('visibilitychange', loadDeveloperMode);
-    const unsubscribe = window.yibiao?.knowledgeBase.onEvent(({ document }) => {
+    const unsubscribe = sogplan.knowledgeBase.onEvent(({ document }) => {
       setIndex((prev) => ({
         ...prev,
         documents: prev.documents.some((item) => item.id === document.id)
@@ -101,7 +102,7 @@ function KnowledgeBasePage() {
   const loadIndex = async () => {
     try {
       await loadDeveloperMode();
-      const data = await window.yibiao?.knowledgeBase.list();
+      const data = await sogplan.knowledgeBase.list();
       if (data) setIndex(data);
     } catch (error) {
       showToast(error instanceof Error ? error.message : '读取知识库失败', 'error');
@@ -110,7 +111,7 @@ function KnowledgeBasePage() {
 
   const loadDeveloperMode = async () => {
     try {
-      const config = await window.yibiao?.config.load();
+      const config = await sogplan.config.load();
       setDeveloperMode(Boolean(config?.developer_mode));
     } catch (error) {
       console.warn('读取开发者模式失败', error);
@@ -120,7 +121,7 @@ function KnowledgeBasePage() {
 
   const loadAnalysis = async (documentId: string, options?: { silent?: boolean }) => {
     try {
-      const data = await window.yibiao?.knowledgeBase.readAnalysis(documentId);
+      const data = await sogplan.knowledgeBase.readAnalysis(documentId);
       if (data) setAnalysisSnapshot(data);
     } catch (error) {
       if (!options?.silent) {
@@ -138,7 +139,7 @@ function KnowledgeBasePage() {
 
     try {
       setCreatingFolder(true);
-      const folder = await window.yibiao?.knowledgeBase.createFolder(name.trim());
+      const folder = await sogplan.knowledgeBase.createFolder(name.trim());
       if (!folder) return;
       setIndex((prev) => ({ ...prev, folders: [...prev.folders, folder] }));
       setActiveFolderId(folder.id);
@@ -160,7 +161,7 @@ function KnowledgeBasePage() {
 
     try {
       setLoading(true);
-      const result = await window.yibiao?.knowledgeBase.uploadDocuments(activeFolder.id);
+      const result = await sogplan.knowledgeBase.uploadDocuments(activeFolder.id);
       if (!result?.success) {
         showToast(result?.message || '未选择文档', 'info');
         return;
@@ -181,7 +182,7 @@ function KnowledgeBasePage() {
     if (!name || name === currentName) return;
 
     try {
-      const folder = await window.yibiao?.knowledgeBase.renameFolder(folderId, name);
+      const folder = await sogplan.knowledgeBase.renameFolder(folderId, name);
       if (!folder) return;
       setIndex((prev) => ({
         ...prev,
@@ -198,7 +199,7 @@ function KnowledgeBasePage() {
     if (!window.confirm(`确定删除文件夹“${folderName}”吗？其中 ${count} 个文档也会一起删除。`)) return;
 
     try {
-      const result = await window.yibiao?.knowledgeBase.deleteFolder(folderId);
+      const result = await sogplan.knowledgeBase.deleteFolder(folderId);
       const folders = index.folders.filter((item) => item.id !== folderId);
       const documents = index.documents.filter((document) => document.folder_id !== folderId);
       setIndex({ folders, documents });
@@ -216,7 +217,7 @@ function KnowledgeBasePage() {
     if (!window.confirm(`确定删除文档“${document.file_name}”吗？`)) return;
 
     try {
-      const result = await window.yibiao?.knowledgeBase.deleteDocument(document.id);
+      const result = await sogplan.knowledgeBase.deleteDocument(document.id);
       setIndex((prev) => ({ ...prev, documents: prev.documents.filter((item) => item.id !== document.id) }));
       setViewer((prev) => (prev?.document.id === document.id ? null : prev));
       showToast(result?.message || '文档已删除', 'success');
@@ -240,10 +241,10 @@ function KnowledgeBasePage() {
 
     try {
       if (mode === 'markdown') {
-        const markdown = await window.yibiao?.knowledgeBase.readMarkdown(document.id);
+        const markdown = await sogplan.knowledgeBase.readMarkdown(document.id);
         setMarkdownPreview(markdown || '');
       } else {
-        const items = await window.yibiao?.knowledgeBase.readItems(document.id);
+        const items = await sogplan.knowledgeBase.readItems(document.id);
         setItemsPreview(items || []);
       }
     } catch (error) {
@@ -255,7 +256,7 @@ function KnowledgeBasePage() {
     if (!targetDocument) return;
     try {
       setStartingMatching(true);
-      const result = await window.yibiao?.knowledgeBase.startMatching(targetDocument.id, batchSizeOverride);
+      const result = await sogplan.knowledgeBase.startMatching(targetDocument.id, batchSizeOverride);
       if (!options?.silent) {
         showToast(result?.message || '已提交匹配任务', result?.success ? 'success' : 'info');
       }

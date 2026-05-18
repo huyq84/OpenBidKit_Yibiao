@@ -1,7 +1,9 @@
 export { buildAnalysisMessages } from './analysisPrompts';
-export { buildChapterContentMessages } from './contentPrompts';
+export { buildChapterContentMessages, classifyChapter, getChapterKnowledge, CHAPTER_TYPE_KNOWLEDGE } from './contentPrompts';
+export type { BuildChapterContentMessagesInput } from './contentPrompts';
 export { buildDuplicateCheckMessages } from './duplicatePrompts';
-export { buildExpandOutlineMessages } from './expandPrompts';
+export { buildExpandMessages, buildBatchExpandMessages } from './expandPrompts';
+export type { ExpandOperation, BuildExpandMessagesInput, BuildBatchExpandMessagesInput } from './expandPrompts';
 export { buildJsonRepairMessages } from './jsonRepairPrompts';
 export {
   buildAlignedChildrenOutlineMessages,

@@ -1,13 +1,14 @@
 {
-  "name": "yibiao-client",
+  "name": "sog-plan-client",
   "version": "0.1.0",
   "private": true,
-  "description": "易标投标工具箱独立桌面客户端",
+  "description": "施工组织设计助手桌面客户端",
   "author": "mark",
   "main": "electron/main.cjs",
   "type": "module",
   "scripts": {
     "dev": "concurrently -k -n vite,electron -c blue,magenta \"vite --host 127.0.0.1 --port 5173 --strictPort\" \"wait-on http://127.0.0.1:5173 && cross-env ELECTRON_RENDERER_URL=http://127.0.0.1:5173 electron .\"",
+    "dev:web": "vite --host 127.0.0.1 --port 5173 --strictPort",
     "build": "tsc --noEmit && vite build",
     "dist": "npm run build && electron-builder",
     "dist:win": "npm run build && electron-builder --win",
@@ -16,8 +17,8 @@
     "start": "electron ."
   },
   "build": {
-    "appId": "com.yibiao.openbidkit",
-    "productName": "易标投标工具箱",
+    "appId": "com.sog.plan",
+    "productName": "施工组织设计助手",
     "copyright": "Copyright © 2026 mark",
     "asar": true,
     "directories": {
@@ -28,14 +29,6 @@
       "electron/**/*",
       "assets/**/*",
       "package.json"
-    ],
-    "publish": [
-      {
-        "provider": "github",
-        "owner": "FB208",
-        "repo": "OpenBidKit_Yibiao",
-        "releaseType": "release"
-      }
     ],
     "win": {
       "icon": "assets/icon.ico",
@@ -79,7 +72,7 @@
         }
       ]
     },
-    "artifactName": "Yibiao-${version}-${os}-${arch}.${ext}"
+    "artifactName": "${productName}-${version}-${os}-${arch}.${ext}"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.15",
@@ -92,7 +85,6 @@
     "chardet": "^2.1.1",
     "cheerio": "^1.2.0",
     "docx": "^9.6.1",
-    "electron-updater": "^6.8.3",
     "iconv-lite": "^0.7.2",
     "image-size": "^2.0.2",
     "mammoth": "^1.12.0",

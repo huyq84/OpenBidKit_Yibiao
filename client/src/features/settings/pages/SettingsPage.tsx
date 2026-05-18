@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { sogplan } from '../../../shared/api/apiClient';
 import { FloatingToolbar, useToast } from '../../../shared/ui';
 import type { FloatingToolbarGroup } from '../../../shared/ui';
 import type { ClientConfig, FileParserProvider, ImageModelConfig, ImageModelProvider, ImageModelStatus, LatestReleaseInfo } from '../../../shared/types';
@@ -29,6 +30,7 @@ const settingsTabs: Array<{ id: SettingsTab; label: string }> = [
 const imageProviders: Array<{ value: ImageModelProvider; label: string }> = [
   { value: 'volcengine', label: '火山方舟' },
   { value: 'google-ai-studio', label: 'Google AI Studio' },
+  { value: 'minimax', label: 'MiniMax' },
 ];
 
 const imageProviderDefaults: Record<ImageModelProvider, { base_url: string; model_name: string }> = {
@@ -39,6 +41,10 @@ const imageProviderDefaults: Record<ImageModelProvider, { base_url: string; mode
   'google-ai-studio': {
     base_url: 'https://generativelanguage.googleapis.com/v1beta',
     model_name: 'gemini-3.1-flash-image-preview',
+  },
+  minimax: {
+    base_url: 'https://api.minimaxi.com',
+    model_name: 'image-01',
   },
 };
 
@@ -178,23 +184,23 @@ function SettingsPage({ onDeveloperModeChange }: SettingsPageProps) {
 
   useEffect(() => {
     void loadTextConfig();
-    void window.yibiao?.getVersion().then(setAppVersion);
-    void window.yibiao?.getLatestVersion().then(setLatestRelease).catch(() => undefined);
+void sogplan.getVersion().then(setAppVersion);
+    void sogplan.getLatestVersion().then(setLatestRelease).catch(() => undefined);
 
     const unsubs: Array<() => void> = [];
     unsubs.push(
-      window.yibiao?.onUpdateProgress(({ percent }) => {
+      sogplan.onUpdateProgress(({ percent }) => {
         setUpdateStatus('downloading');
         setUpdatePercent(Math.round(percent));
       }) ?? (() => {})
     );
     unsubs.push(
-      window.yibiao?.onUpdateDownloaded(() => {
+      sogplan.onUpdateDownloaded(() => {
         setUpdateStatus('downloaded');
       }) ?? (() => {})
     );
     unsubs.push(
-      window.yibiao?.onUpdateError(({ message }) => {
+      sogplan.onUpdateError(({ message }) => {
         setUpdateStatus('error');
         setUpdateError(message);
       }) ?? (() => {})
@@ -205,7 +211,7 @@ function SettingsPage({ onDeveloperModeChange }: SettingsPageProps) {
 
   const loadTextConfig = async () => {
     try {
-      const config = await window.yibiao?.config.load();
+      const config = await sogplan.config.load();
       if (!config) {
         return;
       }
@@ -233,13 +239,13 @@ function SettingsPage({ onDeveloperModeChange }: SettingsPageProps) {
   };
 
   const createClientConfig = (): ClientConfig => ({
-    api_key: state.textModel.api_key,
-    base_url: state.textModel.base_url,
-    model_name: state.textModel.model_name,
+    api_key: state.textModel?.api_key,
+    base_url: state.textModel?.base_url,
+    model_name: state.textModel?.model_name,
     image_model: state.imageModel,
     file_parser: state.fileParser,
-    developer_mode: state.general.developer_mode,
-    real_time_render: state.general.real_time_render,
+    developer_mode: state.general?.developer_mode,
+    real_time_render: state.general?.real_time_render,
   });
 
   const updateImageModelConfig = (partial: Partial<ImageModelConfig>) => {
@@ -251,7 +257,7 @@ function SettingsPage({ onDeveloperModeChange }: SettingsPageProps) {
 
   const saveClientConfig = async (config: ClientConfig) => {
     try {
-      const result = await window.yibiao?.config.save(config);
+      const result = await sogplan.config.save(config);
       showToast(result?.success ? '配置已保存' : result?.message || '配置保存失败', result?.success ? 'success' : 'error');
       if (result?.success) {
         setSavedConfig(config);
@@ -288,11 +294,11 @@ function SettingsPage({ onDeveloperModeChange }: SettingsPageProps) {
     try {
       setTestingTextModel(true);
       const config = createClientConfig();
-      const result = await window.yibiao?.config.save(config);
+      const result = await sogplan.config.save(config);
       if (result?.success) {
         setSavedConfig(config);
       }
-      const content = await window.yibiao?.ai.chat({
+      const content = await sogplan.ai.chat({
         messages: [{ role: 'user', content: 'hi' }],
         temperature: 0,
       });
@@ -313,9 +319,9 @@ function SettingsPage({ onDeveloperModeChange }: SettingsPageProps) {
     try {
       setTestingImageModel(true);
       const config = createClientConfig();
-      const result = await window.yibiao?.ai.testImageModel(config);
-      if (!result?.success) {
-        throw new Error(result?.message || '生图模型测试失败');
+      const result = await sogplan.ai.testImageModel(config);
+      if (!result?.result?.success) {
+        throw new Error(result?.result?.message || result?.message || '生图模型测试失败');
       }
       const testedConfig: ClientConfig = {
         ...config,
@@ -326,16 +332,16 @@ function SettingsPage({ onDeveloperModeChange }: SettingsPageProps) {
           last_error: '',
         },
       };
-      await window.yibiao?.config.save(testedConfig);
+      await sogplan.config.save(testedConfig);
       setState((prev) => ({ ...prev, imageModel: testedConfig.image_model }));
       setSavedConfig(testedConfig);
-      const previewSrc = result?.image_url || (result?.image_data ? `data:${result.mime_type || 'image/png'};base64,${result.image_data}` : '');
+      const previewSrc = result?.result?.image_url || (result?.result?.image_data ? `data:${result?.result?.mime_type || 'image/png'};base64,${result?.result?.image_data}` : '');
 
       if (previewSrc) {
-        setImageTestPreview({ src: previewSrc, title: `${state.imageModel.provider === 'volcengine' ? '火山方舟' : 'Google AI Studio'} 测试图片` });
+        setImageTestPreview({ src: previewSrc, title: `${providerLabel} 测试图片` });
       }
 
-      showToast(result?.message || '生图模型测试成功', result?.success ? 'success' : 'error');
+      showToast(result?.result?.message || result?.message || '生图模型测试成功', result?.result?.success ? 'success' : 'error');
     } catch (error) {
       const message = error instanceof Error ? error.message : '生图模型测试失败';
       const config = createClientConfig();
@@ -348,7 +354,7 @@ function SettingsPage({ onDeveloperModeChange }: SettingsPageProps) {
           last_error: message,
         },
       };
-      await window.yibiao?.config.save(failedConfig).catch(() => undefined);
+      await sogplan.config.save(failedConfig).catch(() => undefined);
       setState((prev) => ({ ...prev, imageModel: failedConfig.image_model }));
       setSavedConfig(failedConfig);
       showToast(message, 'error');
@@ -363,7 +369,7 @@ function SettingsPage({ onDeveloperModeChange }: SettingsPageProps) {
 
   const openConfigFolder = async () => {
     try {
-      await window.yibiao?.config.openConfigFolder();
+      await sogplan.config.openConfigFolder();
       showToast('已打开配置文件夹', 'success');
     } catch (error) {
       showToast(error instanceof Error ? error.message : '打开配置文件夹失败', 'error');
@@ -373,7 +379,7 @@ function SettingsPage({ onDeveloperModeChange }: SettingsPageProps) {
   const fetchTextModels = async () => {
     try {
       setLoadingModels('text');
-      const result = await window.yibiao?.config.listModels(createClientConfig());
+      const result = await sogplan.config.listModels(createClientConfig());
       const models = result?.models || [];
       setTextModels(models);
       if (result?.success && models.length > 0) {
@@ -395,13 +401,13 @@ function SettingsPage({ onDeveloperModeChange }: SettingsPageProps) {
   const fetchImageModels = async () => {
     try {
       setLoadingModels('image');
-      if (state.imageModel.provider === 'volcengine') {
+      if (state.imageModel?.provider === 'volcengine') {
         setImageModels([]);
         showToast('火山方舟请填写控制台中已开通的模型或推理接入点 ID。');
         return;
       }
 
-      if (state.imageModel.provider === 'google-ai-studio') {
+      if (state.imageModel?.provider === 'google-ai-studio') {
         const models = [
           'gemini-3.1-flash-image-preview',
           'gemini-3-pro-image-preview',
@@ -415,6 +421,18 @@ function SettingsPage({ onDeveloperModeChange }: SettingsPageProps) {
             : resetImageModelStatus({ ...prev.imageModel, model_name: models[0] }),
         }));
         showToast('已载入 Google AI Studio 生图模型', 'success');
+        return;
+      }
+
+      if (state.imageModel?.provider === 'minimax') {
+        setImageModels(['image-01', 'image-01-preview']);
+        setState((prev) => ({
+          ...prev,
+          imageModel: prev.imageModel?.model_name && ['image-01', 'image-01-preview'].includes(prev.imageModel.model_name)
+            ? prev.imageModel
+            : resetImageModelStatus({ ...prev.imageModel, model_name: 'image-01' }),
+        }));
+        showToast('已载入 MiniMax 生图模型', 'success');
         return;
       }
 
@@ -439,8 +457,8 @@ function SettingsPage({ onDeveloperModeChange }: SettingsPageProps) {
     }
 
     if (activeTab === 'general') {
-      return Boolean(state.general.developer_mode) !== Boolean(savedConfig.developer_mode)
-        || Boolean(state.general.real_time_render) !== (savedConfig.real_time_render !== false);
+      return Boolean(state.general?.developer_mode) !== Boolean(savedConfig.developer_mode)
+        || Boolean(state.general?.real_time_render) !== (savedConfig.real_time_render !== false);
     }
 
     if (activeTab === 'image-model') {
@@ -474,9 +492,10 @@ function SettingsPage({ onDeveloperModeChange }: SettingsPageProps) {
 
   const canSaveActiveTab = activeTab === 'general' || activeTab === 'text-model' || activeTab === 'image-model' || activeTab === 'file-parser';
   const activeTabDirty = isActiveTabDirty();
-  const imageModelStatus: ImageModelStatus = state.imageModel.status || 'untested';
+  const imageModelStatus: ImageModelStatus = state?.imageModel?.status || 'untested';
+  const providerLabel = state?.imageModel?.provider === 'volcengine' ? '火山方舟' : state?.imageModel?.provider === 'minimax' ? 'MiniMax' : 'Google AI Studio';
   const currentImageStatus = imageStatusMeta[imageModelStatus];
-  const imageTestTime = formatImageTestTime(state.imageModel.tested_at);
+  const imageTestTime = formatImageTestTime(state.imageModel?.tested_at);
   const settingsToolbarGroups: FloatingToolbarGroup[] = canSaveActiveTab
     ? [
         {
@@ -567,7 +586,7 @@ function SettingsPage({ onDeveloperModeChange }: SettingsPageProps) {
               <span className="settings-switch-control">
                 <input
                   type="checkbox"
-                  checked={state.general.real_time_render}
+                  checked={state.general?.real_time_render}
                   onChange={(event) => updateRealTimeRender(event.target.checked)}
                 />
                 <span className="settings-switch-track" aria-hidden="true">
@@ -583,7 +602,7 @@ function SettingsPage({ onDeveloperModeChange }: SettingsPageProps) {
               <span className="settings-switch-control">
                 <input
                   type="checkbox"
-                  checked={state.general.developer_mode}
+                  checked={state.general?.developer_mode}
                   onChange={(event) => updateDeveloperMode(event.target.checked)}
                 />
                 <span className="settings-switch-track" aria-hidden="true">
@@ -591,7 +610,7 @@ function SettingsPage({ onDeveloperModeChange }: SettingsPageProps) {
                 </span>
               </span>
             </label>
-            {state.general.developer_mode && (
+            {state.general?.developer_mode && (
               <div className="settings-row">
                 <div className="settings-row-copy">
                   <strong>配置文件夹</strong>
@@ -622,7 +641,7 @@ function SettingsPage({ onDeveloperModeChange }: SettingsPageProps) {
               </div>
               <input
                 type="text"
-                value={state.textModel.base_url}
+                value={state.textModel?.base_url}
               placeholder="例如 https://api.openai.com/v1"
               onChange={(event) => setState((prev) => ({
                 ...prev,
@@ -637,7 +656,7 @@ function SettingsPage({ onDeveloperModeChange }: SettingsPageProps) {
               </div>
               <input
                 type="password"
-                value={state.textModel.api_key}
+                value={state.textModel?.api_key}
               placeholder="请输入文本模型 API Key"
               onChange={(event) => setState((prev) => ({
                 ...prev,
@@ -653,7 +672,7 @@ function SettingsPage({ onDeveloperModeChange }: SettingsPageProps) {
               <div className="settings-control-with-action">
                 {textModels.length > 0 ? (
                   <select
-                    value={state.textModel.model_name}
+                    value={state.textModel?.model_name}
                     onChange={(event) => setState((prev) => ({
                       ...prev,
                       textModel: { ...prev.textModel, model_name: event.target.value },
@@ -664,7 +683,7 @@ function SettingsPage({ onDeveloperModeChange }: SettingsPageProps) {
                 ) : (
                   <input
                     type="text"
-                    value={state.textModel.model_name}
+                    value={state.textModel?.model_name}
                     placeholder="例如 deepseek-chat"
                     onChange={(event) => setState((prev) => ({
                       ...prev,
@@ -702,7 +721,7 @@ function SettingsPage({ onDeveloperModeChange }: SettingsPageProps) {
               <strong>接口状态：{currentImageStatus.label}</strong>
               <span>{currentImageStatus.description}</span>
               {imageTestTime && <small>最近测试：{imageTestTime}</small>}
-              {imageModelStatus === 'unavailable' && state.imageModel.last_error && <small>失败原因：{state.imageModel.last_error}</small>}
+              {imageModelStatus === 'unavailable' && state.imageModel?.last_error && <small>失败原因：{state.imageModel?.last_error}</small>}
             </div>
             <em>{currentImageStatus.label}</em>
           </div>
@@ -713,7 +732,7 @@ function SettingsPage({ onDeveloperModeChange }: SettingsPageProps) {
                 <span>各家生图接口不统一，先选择服务商再配置模型</span>
               </div>
               <select
-                value={state.imageModel.provider}
+                value={state.imageModel?.provider}
                 onChange={(event) => {
                   const provider = event.target.value as ImageModelProvider;
                   setImageModels([]);
@@ -732,23 +751,23 @@ function SettingsPage({ onDeveloperModeChange }: SettingsPageProps) {
             <label className="settings-row">
               <div className="settings-row-copy">
                 <strong>Base URL</strong>
-                <span>{state.imageModel.provider === 'volcengine' ? '火山方舟 OpenAI 兼容接口地址' : 'Google Gemini API REST 地址'}</span>
+                <span>{state.imageModel?.provider === 'minimax' ? 'MiniMax API 地址' : state.imageModel?.provider === 'volcengine' ? '火山方舟 OpenAI 兼容接口地址' : 'Google Gemini API REST 地址'}</span>
               </div>
               <input
                 type="text"
-                value={state.imageModel.base_url || ''}
-                placeholder={imageProviderDefaults[state.imageModel.provider].base_url}
+                value={state.imageModel?.base_url || ''}
+                placeholder={imageProviderDefaults[state.imageModel?.provider]?.base_url}
                 onChange={(event) => updateImageModelConfig({ base_url: event.target.value })}
               />
             </label>
             <label className="settings-row">
               <div className="settings-row-copy">
                 <strong>API Key</strong>
-                <span>{state.imageModel.provider === 'volcengine' ? '用于调用火山方舟图片生成 API' : '用于调用 Google AI Studio Gemini API'}</span>
+                <span>{state.imageModel?.provider === 'minimax' ? '用于调用 MiniMax 图片生成 API' : state.imageModel?.provider === 'volcengine' ? '用于调用火山方舟图片生成 API' : '用于调用 Google AI Studio Gemini API'}</span>
               </div>
               <input
                 type="password"
-                value={state.imageModel.api_key}
+                value={state.imageModel?.api_key}
               placeholder="请输入生图服务 API Key"
               onChange={(event) => updateImageModelConfig({ api_key: event.target.value })}
               />
@@ -756,12 +775,12 @@ function SettingsPage({ onDeveloperModeChange }: SettingsPageProps) {
             <label className="settings-row">
               <div className="settings-row-copy">
                 <strong>模型名称</strong>
-                <span>{state.imageModel.provider === 'volcengine' ? '填写火山方舟控制台中已开通的模型或推理接入点 ID' : '选择或填写支持图片生成的 Gemini 模型'}</span>
+                <span>{state.imageModel?.provider === 'minimax' ? '填写 MiniMax 控制台中已开通的模型 ID' : state.imageModel?.provider === 'volcengine' ? '填写火山方舟控制台中已开通的模型或推理接入点 ID' : '选择或填写支持图片生成的 Gemini 模型'}</span>
               </div>
               <div className="settings-control-with-action">
                 {imageModels.length > 0 ? (
                   <select
-                    value={state.imageModel.model_name}
+                    value={state.imageModel?.model_name}
                     onChange={(event) => updateImageModelConfig({ model_name: event.target.value })}
                   >
                     {imageModels.map((model) => <option value={model} key={model}>{model}</option>)}
@@ -769,8 +788,8 @@ function SettingsPage({ onDeveloperModeChange }: SettingsPageProps) {
                 ) : (
                   <input
                     type="text"
-                    value={state.imageModel.model_name}
-                    placeholder={state.imageModel.provider === 'volcengine' ? '请输入已开通的模型或推理接入点 ID' : 'gemini-3.1-flash-image-preview'}
+                    value={state.imageModel?.model_name}
+                    placeholder={state.imageModel?.provider === 'minimax' ? 'image-01' : state.imageModel?.provider === 'volcengine' ? '请输入已开通的模型或推理接入点 ID' : 'gemini-3.1-flash-image-preview'}
                     onChange={(event) => updateImageModelConfig({ model_name: event.target.value })}
                   />
                 )}
@@ -815,7 +834,7 @@ function SettingsPage({ onDeveloperModeChange }: SettingsPageProps) {
                 <span>优先使用本地解析，复杂扫描件可尝试 MinerU 精准解析 API</span>
               </div>
               <select
-                value={state.fileParser.provider}
+                value={state.fileParser?.provider}
                 onChange={(event) => setState((prev) => ({
                 ...prev,
                 fileParser: { ...prev.fileParser, provider: event.target.value as FileParserProvider },
@@ -826,7 +845,7 @@ function SettingsPage({ onDeveloperModeChange }: SettingsPageProps) {
                 ))}
               </select>
             </label>
-            {state.fileParser.provider === 'mineru-accurate-api' && (
+            {state.fileParser?.provider === 'mineru-accurate-api' && (
               <label className="settings-row">
                 <div className="settings-row-copy">
                   <strong>MinerU Token</strong>
@@ -834,7 +853,7 @@ function SettingsPage({ onDeveloperModeChange }: SettingsPageProps) {
                 </div>
                 <input
                   type="password"
-                  value={state.fileParser.mineru_token || ''}
+                  value={state.fileParser?.mineru_token || ''}
                   placeholder="请输入 MinerU Token"
                   onChange={(event) => setState((prev) => ({
                     ...prev,
@@ -879,39 +898,7 @@ function SettingsPage({ onDeveloperModeChange }: SettingsPageProps) {
             <strong>关于</strong>
           </div>
           <div className="about-grid">
-            <div><span>当前版本</span><strong>{appVersion || '...'}</strong></div>
-            <div><span>GitHub 仓库</span><a href="https://github.com/FB208/OpenBidKit_Yibiao" target="_blank" rel="noreferrer">FB208/OpenBidKit_Yibiao</a></div>
-            <div>
-              <span>自动更新</span>
-              <strong>
-                {latestRelease
-                  ? compareVersions(latestRelease.version, appVersion) > 0
-                    ? updateStatus === 'downloading'
-                      ? `正在下载 ${updatePercent}%`
-                      : updateStatus === 'downloaded'
-                        ? '下载完成，重启安装'
-                        : updateStatus === 'error'
-                          ? `更新失败：${updateError}`
-                          : `最新版本 ${latestRelease.version}`
-                    : '已是最新版本'
-                  : '检查中...'}
-              </strong>
-              {latestRelease && compareVersions(latestRelease.version, appVersion) > 0 && updateStatus !== 'downloading' && (
-                <button
-                  type="button"
-                  className="update-button"
-                  onClick={() => {
-                    if (updateStatus === 'downloaded') {
-                      void window.yibiao?.quitAndInstall();
-                    } else {
-                      void window.yibiao?.startUpdate();
-                    }
-                  }}
-                >
-                  {updateStatus === 'downloaded' ? '重启安装' : '立即更新'}
-                </button>
-              )}
-            </div>
+<div><span>当前版本</span><strong>{appVersion || '...'}</strong></div>
             <div><span>运行模式</span><strong>独立 Electron 客户端</strong></div>
           </div>
           <div className="privacy-statement">

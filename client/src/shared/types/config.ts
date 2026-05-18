@@ -24,7 +24,7 @@ export interface ImageModelTestResult {
   mime_type?: string;
 }
 
-export type ImageModelProvider = 'volcengine' | 'google-ai-studio';
+export type ImageModelProvider = 'volcengine' | 'google-ai-studio' | 'minimax';
 export type ImageModelStatus = 'untested' | 'available' | 'unavailable';
 
 export interface ImageModelConfig {

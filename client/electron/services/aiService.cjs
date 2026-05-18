@@ -137,7 +137,7 @@ function saveGeneratedImage(app, image) {
   const filePath = path.join(imagesDir, fileName);
   fs.writeFileSync(filePath, image.buffer);
   return {
-    asset_url: `yibiao-asset://generated-images/${encodeURIComponent(fileName)}`,
+    asset_url: `sog-asset://generated-images/${encodeURIComponent(fileName)}`,
     file_path: filePath,
     mime_type: image.mime_type,
   };

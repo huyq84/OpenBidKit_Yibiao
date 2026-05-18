@@ -3,7 +3,7 @@ const { contextBridge, ipcRenderer } = require('electron');
 let streamRequestId = 0;
 
 const bridge = {
-  appName: '易标投标工具箱',
+  appName: '施工组织设计助手',
   platform: process.platform,
   getVersion: () => ipcRenderer.invoke('app:get-version'),
   getLatestVersion: () => ipcRenderer.invoke('app:get-latest-version'),
@@ -94,9 +94,9 @@ const bridge = {
   },
 };
 
-contextBridge.exposeInMainWorld('yibiao', bridge);
+contextBridge.exposeInMainWorld('sogplan', bridge);
 
-contextBridge.exposeInMainWorld('yibiaoClient', {
+contextBridge.exposeInMainWorld('sogplanClient', {
   appName: bridge.appName,
   platform: bridge.platform,
 });

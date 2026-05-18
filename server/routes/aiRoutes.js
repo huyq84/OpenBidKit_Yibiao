@@ -17,20 +17,28 @@ export function registerAiRoutes(app, services) {
 
   router.post('/api/ai/chat/stream', async (req, res) => {
     try {
+      console.error('[AI_ROUTE] /api/ai/chat/stream called, body keys:', Object.keys(req.body));
       const config = configStore.load();
-      const { messages, temperature } = req.body;
+      console.error('[AI_ROUTE] config loaded, api_key exists:', !!config.api_key, 'base_url:', config.base_url);
+      const { messages, temperature, response_format } = req.body;
+      console.error('[AI_ROUTE] messages count:', messages?.length, 'temperature:', temperature, 'response_format:', JSON.stringify(response_format));
       res.setHeader('Content-Type', 'text/event-stream');
       res.setHeader('Cache-Control', 'no-cache');
       res.flushHeaders();
-      await aiService.chatStream(config, { messages, temperature }, (event) => {
+      let eventCount = 0;
+      await aiService.chatStream(config, { messages, temperature, response_format }, (event) => {
+        eventCount++;
+        console.error('[AI_ROUTE] event', eventCount, ':', JSON.stringify(event).slice(0, 100));
         if (event.type === 'done') {
           res.write('data: [DONE]\n\n');
         } else if (event.type === 'content') {
           res.write(`data: ${JSON.stringify({ content: event.content })}\n\n`);
         }
       });
+      console.error('[AI_ROUTE] chatStream finished, total events:', eventCount);
       res.end();
     } catch (error) {
+      console.error('[AI_ROUTE] /api/ai/chat/stream error:', error.message, error.stack);
       res.status(500).json({ error: error.message });
     }
   });

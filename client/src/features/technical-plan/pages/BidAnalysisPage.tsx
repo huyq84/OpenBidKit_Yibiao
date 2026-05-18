@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { sogplan } from '../../../shared/api/apiClient';
 import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
 import remarkGfm from 'remark-gfm';
@@ -199,7 +200,7 @@ function BidAnalysisPage({
 
     try {
       setRunning(true);
-      await window.yibiao?.tasks.startBidAnalysis({ mode, fileContent });
+      await sogplan.tasks.startBidAnalysis({ mode, fileContent });
       showToast('招标文件解析任务已在后台启动', 'success');
     } catch (error) {
       showToast(error instanceof Error ? error.message : '启动解析任务失败', 'error');

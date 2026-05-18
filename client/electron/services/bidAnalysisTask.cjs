@@ -73,11 +73,14 @@ function buildMessages(fileContent, task) {
 }
 
 async function runBidAnalysisTask({ aiService, workspaceStore, updateTask, payload }) {
+  console.error('[BID_TASK] runBidAnalysisTask started, mode:', payload.mode, 'has aiService:', !!aiService, 'has streamChat:', typeof aiService?.streamChat);
   const mode = payload.mode || 'key';
   const selectedTasks = getBidAnalysisTasks(mode);
+  console.error('[BID_TASK] selected tasks:', selectedTasks.map(t => t.id));
   let technicalPlan = workspaceStore.updateTechnicalPlan({ bidAnalysisMode: mode, bidAnalysisTask: updateTask({ status: 'running', progress: 0, logs: ['开始解析招标文件。'] }) });
   const currentTasks = technicalPlan.bidAnalysisTasks || {};
   const tasksToRun = selectedTasks.filter((task) => currentTasks[task.id]?.status !== 'success');
+  console.error('[BID_TASK] tasks to run:', tasksToRun.map(t => t.id));
 
   function doneProgress(nextTasks) {
     const done = selectedTasks.filter((task) => ['success', 'error'].includes(nextTasks[task.id]?.status)).length;
@@ -85,14 +88,18 @@ async function runBidAnalysisTask({ aiService, workspaceStore, updateTask, paylo
   }
 
   async function runOne(task) {
+    console.error('[BID_TASK] runOne starting:', task.id);
     let content = '';
     workspaceStore.updateTechnicalPlan({
       bidAnalysisTasks: { ...(workspaceStore.loadTechnicalPlan()?.bidAnalysisTasks || {}), [task.id]: { id: task.id, label: task.label, status: 'running', content: '' } },
     });
 
+    console.error('[BID_TASK] calling aiService.streamChat for:', task.id);
     await aiService.streamChat({ messages: buildMessages(payload.fileContent, task), temperature: 0.1, response_format: task.output === 'json' ? { type: 'json_object' } : undefined }, (event) => {
+      console.error('[BID_TASK] stream event received for', task.id, 'event type:', event.type, 'has chunk:', !!event.chunk, 'has content:', !!event.content);
       if (event.type === 'chunk' && event.chunk) {
         content += event.chunk;
+        console.error('[BID_TASK] content updated for', task.id, 'length:', content.length);
         const prev = workspaceStore.loadTechnicalPlan() || {};
         const nextTasks = { ...(prev.bidAnalysisTasks || {}), [task.id]: { id: task.id, label: task.label, status: 'running', content } };
         technicalPlan = workspaceStore.updateTechnicalPlan({ bidAnalysisTasks: nextTasks, bidAnalysisProgress: doneProgress(nextTasks) });

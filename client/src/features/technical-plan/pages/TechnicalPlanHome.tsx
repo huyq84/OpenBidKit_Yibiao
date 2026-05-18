@@ -1,9 +1,12 @@
 import * as Dialog from '@radix-ui/react-dialog';
+import { sogplan } from '../../../shared/api/apiClient';
 import { useEffect, useState } from 'react';
 import DocumentAnalysisPage from './DocumentAnalysisPage';
+import PreAnalysisPage from './PreAnalysisPage';
 import BidAnalysisPage from './BidAnalysisPage';
 import OutlineEditPage from './OutlineEditPage';
 import ContentEditPage from './ContentEditPage';
+import ExpandEditPage from './ExpandEditPage';
 import { useTechnicalPlanWorkflow } from '../hooks/useTechnicalPlanWorkflow';
 import { trackPageView } from '../../../shared/analytics/analytics';
 import { FloatingToolbar, ToolbarArrowLeftIcon, ToolbarArrowRightIcon, ToolbarDocumentIcon, useToast } from '../../../shared/ui';
@@ -12,6 +15,7 @@ import type { OutlineData, OutlineItem, WordExportProgressEvent } from '../../..
 
 const steps: TechnicalPlanStep[] = [
   'document-analysis',
+  'pre-analysis',
   'bid-analysis',
   'outline-generation',
   'content-edit',
@@ -20,6 +24,7 @@ const steps: TechnicalPlanStep[] = [
 
 const stepLabels: Record<TechnicalPlanStep, string> = {
   'document-analysis': '上传招标文件',
+  'pre-analysis': '预分析',
   'bid-analysis': '招标文件解析',
   'outline-generation': '目录生成',
   'content-edit': '生成正文',
@@ -125,11 +130,14 @@ function TechnicalPlanHome() {
   const isExporting = exportProgress.running;
   const isNextDisabled = activeIndex >= steps.length - 1
     || (state.step === 'document-analysis' && !state.fileContent)
+    || (state.step === 'pre-analysis' && !(state.preAnalysisState?.annotations?.length))
     || (state.step === 'bid-analysis' && !bidAnalysisReady)
     || (state.step === 'outline-generation' && !state.outlineData);
   const nextTooltip = state.step === 'document-analysis' && !state.fileContent
     ? '上传完招标文件后才能进入下一步'
-    : state.step === 'bid-analysis' && !bidAnalysisReady
+    : state.step === 'pre-analysis' && !state.preAnalysisState?.annotations?.length
+      ? '预分析标注完成后才能进入招标文件解析'
+      : state.step === 'bid-analysis' && !bidAnalysisReady
       ? '招标文件解析完成后才能进入目录生成'
       : state.step === 'outline-generation' && !state.outlineData
         ? '目录生成完成后才能进入正文生成'
@@ -153,11 +161,11 @@ function TechnicalPlanHome() {
   };
 
   useEffect(() => {
-    if (!window.yibiao?.tasks) {
+    if (!sogplan.tasks) {
       return;
     }
 
-    const unsubscribe = window.yibiao.tasks.onTaskEvent<typeof state>((event) => {
+    const unsubscribe = sogplan.tasks.onTaskEvent<typeof state>((event) => {
       const taskType = (event.task as { type?: string } | undefined)?.type;
       const latestTask = trimTaskLogs(event.task as BackgroundTaskState | undefined);
       const technicalPlan = event.technicalPlan;
@@ -211,10 +219,21 @@ function TechnicalPlanHome() {
           };
         }
 
+        if (taskType === 'pre-analysis') {
+          return {
+            ...prev,
+            preAnalysisTask: trimTaskLogs(technicalPlan.preAnalysisTask) || latestTask,
+            preAnalysisState: {
+              ...(prev.preAnalysisState || { annotations: [], verifiedCount: 0, totalCount: 0 }),
+              ...(technicalPlan.preAnalysisState || {}),
+            },
+          };
+        }
+
         return prev;
       });
     });
-    window.yibiao.tasks.getActiveTasks().catch((error) => {
+    sogplan.tasks.getActiveTasks().catch((error) => {
       console.warn('获取后台任务状态失败', error);
     });
 
@@ -243,7 +262,7 @@ function TechnicalPlanHome() {
         mermaidCount,
       });
 
-      unsubscribe = window.yibiao?.export.onWordExportProgress((event: WordExportProgressEvent) => {
+      unsubscribe = sogplan.export.onWordExportProgress((event: WordExportProgressEvent) => {
         if (event.requestId && event.requestId !== requestId) {
           return;
         }
@@ -259,7 +278,7 @@ function TechnicalPlanHome() {
         }));
       });
 
-      const result = await window.yibiao?.export.exportWord({
+      const result = await sogplan.export.exportWord({
         requestId,
         project_name: state.outlineData.project_name,
         outline: state.outlineData.outline,
@@ -319,7 +338,7 @@ function TechnicalPlanHome() {
       outlineData: updatedOutlineData,
       contentGenerationSections: updatedSections,
     }));
-    await window.yibiao?.workspace.updateTechnicalPlan({
+    await sogplan.workspace.updateTechnicalPlan({
       outlineData: updatedOutlineData,
       contentGenerationSections: updatedSections,
     });
@@ -338,7 +357,7 @@ function TechnicalPlanHome() {
       contentGenerationSections: {},
       contentGenerationPlans: {},
     }));
-    await window.yibiao?.workspace.updateTechnicalPlan({
+    await sogplan.workspace.updateTechnicalPlan({
       outlineData: updatedOutlineData,
       contentGenerationTask: undefined,
       contentGenerationSections: {},
@@ -356,7 +375,7 @@ function TechnicalPlanHome() {
   };
 
   const saveContentGenerationOptions = async (contentGenerationOptions: ContentGenerationOptions) => {
-    await window.yibiao?.workspace.updateTechnicalPlan({ contentGenerationOptions });
+    await sogplan.workspace.updateTechnicalPlan({ contentGenerationOptions });
     setState((prev) => ({ ...prev, contentGenerationOptions }));
   };
 
@@ -444,10 +463,16 @@ function TechnicalPlanHome() {
         <DocumentAnalysisPage
           fileName={state.fileName}
           fileContent={state.fileContent}
-          onFileImported={(fileName, fileContent) => setState((prev) => ({
+          originalFilePath={state.originalFilePath}
+          originalFileExtension={state.originalFileExtension}
+          pdfPath={state.pdfPath}
+          onFileImported={(fileName, fileContent, filePath, fileExtension, pdfPath) => setState((prev) => ({
             ...prev,
             fileName,
             fileContent,
+            originalFilePath: filePath,
+            originalFileExtension: fileExtension,
+            pdfPath,
             projectOverview: '',
             techRequirements: '',
             bidAnalysisTasks: {},
@@ -461,6 +486,27 @@ function TechnicalPlanHome() {
             contentGenerationSections: {},
             contentGenerationPlans: {},
             outlineData: null,
+            preAnalysisState: { annotations: [], verifiedCount: 0, totalCount: 0 },
+          }))}
+        />
+      )}
+
+      {state.step === 'pre-analysis' && (
+        <PreAnalysisPage
+          fileContent={state.fileContent}
+          preAnalysisState={state.preAnalysisState}
+          originalFilePath={state.originalFilePath}
+          originalFileExtension={state.originalFileExtension}
+          onAnnotationsChange={(annotations) => setState((prev) => ({
+            ...prev,
+            preAnalysisState: {
+              ...(prev.preAnalysisState || { annotations: [], verifiedCount: 0, totalCount: 0 }),
+              annotations,
+            },
+          }))}
+          onPreAnalysisTaskChange={(task) => setState((prev) => ({
+            ...prev,
+            preAnalysisState: { ...(prev.preAnalysisState || {}), preAnalysisTask: task } as any,
           }))}
         />
       )}
@@ -515,15 +561,11 @@ function TechnicalPlanHome() {
         />
       )}
       {state.step === 'expand' && (
-        <section className="empty-panel compact-placeholder">
-          <div className="feature-under-development-overlay" role="status" aria-live="polite">
-            <strong>正在开发中，敬请期待</strong>
-            <span>此功能尚未完成，请先不要使用。</span>
-          </div>
-          <span className="section-kicker">STEP 05</span>
-          <h3>扩写改写</h3>
-          <p>后续接入旧方案导入、章节扩写和人工校准。</p>
-        </section>
+        <ExpandEditPage
+          outlineData={state.outlineData}
+          projectOverview={state.projectOverview}
+          task={state.contentGenerationTask}
+        />
       )}
 
       <Dialog.Root

@@ -32,7 +32,7 @@ export interface LatestReleaseInfo {
   html_url: string;
 }
 
-export interface YibiaoBridge {
+export interface SogPlanBridge {
   appName: string;
   platform: string;
   getVersion: () => Promise<string>;

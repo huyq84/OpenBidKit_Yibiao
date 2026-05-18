@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { sogplan } from '../../../shared/api/apiClient';
 import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
 import remarkGfm from 'remark-gfm';
@@ -14,28 +15,33 @@ const parserLabels: Record<FileParserProvider, string> = {
 interface DocumentAnalysisPageProps {
   fileName: string;
   fileContent: string;
-  onFileImported: (fileName: string, fileContent: string) => void;
+  originalFilePath?: string;
+  originalFileExtension?: string;
+  pdfPath?: string;
+  onFileImported: (fileName: string, fileContent: string, filePath?: string, fileExtension?: string, pdfPath?: string) => void;
 }
 
 function DocumentAnalysisPage({
   fileName,
   fileContent,
+  originalFilePath,
+  originalFileExtension,
+  pdfPath,
   onFileImported,
 }: DocumentAnalysisPageProps) {
   const [parserLabel, setParserLabel] = useState(parserLabels.local);
   const [busy, setBusy] = useState(false);
+  const [viewMode, setViewMode] = useState<'pdf' | 'markdown'>('pdf');
   const { showToast } = useToast();
+
+  const hasPdfPreview = pdfPath || (originalFileExtension === '.pdf' && originalFilePath);
 
   useEffect(() => {
     let mounted = true;
 
     const loadParserConfig = async () => {
-      if (!window.yibiao) {
-        return;
-      }
-
       try {
-        const config = await window.yibiao.config.load();
+        const config = await sogplan.config.load();
         if (mounted) {
           setParserLabel(parserLabels[config.file_parser.provider] || parserLabels.local);
         }
@@ -54,14 +60,20 @@ function DocumentAnalysisPage({
   const importDocument = async () => {
     try {
       setBusy(true);
-      const result = await window.yibiao?.file.importDocument();
+      const result = await sogplan.file.importDocument();
 
       if (!result?.success || !result.file_content) {
         showToast(result?.message || '未导入文件', 'info');
         return;
       }
 
-      onFileImported(result.file_name || '未命名文件', result.file_content);
+      onFileImported(
+        result.file_name || '未命名文件', 
+        result.file_content,
+        result.file_path,
+        result.file_extension,
+        result.pdf_path
+      );
       if (result.parser_label) {
         setParserLabel(result.parser_label);
       }
@@ -71,6 +83,92 @@ function DocumentAnalysisPage({
     } finally {
       setBusy(false);
     }
+  };
+
+  const renderDocumentPreview = () => {
+    if (viewMode === 'markdown') {
+      return (
+        <div className="markdown-viewer">
+          <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>
+            {fileContent}
+          </ReactMarkdown>
+        </div>
+      );
+    }
+
+    if (pdfPath) {
+      return (
+        <div className="document-pdf-preview">
+          <object
+            data={`file:///${pdfPath}`}
+            type="application/pdf"
+            className="pdf-viewer"
+          >
+            <div className="pdf-fallback">
+              <p>无法直接预览 PDF，请在外部打开查看：</p>
+              <a href={`file:///${pdfPath}`} target="_blank" className="pdf-external-link">
+                打开预览文件
+              </a>
+            </div>
+          </object>
+        </div>
+      );
+    }
+
+    if (originalFileExtension === '.pdf' && originalFilePath) {
+      return (
+        <div className="document-pdf-preview">
+          <object
+            data={`file:///${originalFilePath}`}
+            type="application/pdf"
+            className="pdf-viewer"
+          >
+            <div className="pdf-fallback">
+              <p>无法直接预览 PDF，请在外部打开查看：</p>
+              <a href={`file:///${originalFilePath}`} target="_blank" className="pdf-external-link">
+                打开原始文件
+              </a>
+            </div>
+          </object>
+        </div>
+      );
+    }
+
+    return (
+      <div className="document-other-preview">
+        <div className="document-info">
+          <div className="document-icon">
+            {originalFileExtension === '.docx' && '📄'}
+            {originalFileExtension === '.doc' && '📄'}
+            {originalFileExtension === '.wps' && '📄'}
+            {!['.pdf', '.docx', '.doc', '.wps'].includes(originalFileExtension || '') && '📑'}
+          </div>
+          <div className="document-details">
+            <strong>{decodeURIComponent(fileName)}</strong>
+            <p>文件格式: {(originalFileExtension || '.unknown').toUpperCase()}</p>
+            <p>字符数: {fileContent.length.toLocaleString()}</p>
+            {!pdfPath && <p className="pdf-convert-hint">⚠️ 未安装 LibreOffice，无法转换为 PDF 预览</p>}
+          </div>
+        </div>
+        <div className="document-actions">
+          {originalFilePath && (
+            <button
+              type="button"
+              className="secondary-action"
+              onClick={() => window.open(`file:///${decodeURIComponent(originalFilePath)}`, '_blank')}
+            >
+              在外部打开原文件
+            </button>
+          )}
+        </div>
+        <div className="document-preview-hint">
+          <p>解析后的文本预览（用于 AI 分析）：</p>
+          <div className="document-text-preview">
+            {fileContent.slice(0, 500)}...
+          </div>
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -88,22 +186,40 @@ function DocumentAnalysisPage({
         </div>
       </section>
 
-      <section className="analysis-markdown-card">
+      <section className="analysis-document-card">
         <div className="analysis-result-head">
-          <strong>招标文件内容</strong>
-          <span>{fileContent ? '来自原始招标文件' : '等待上传'}</span>
+          <strong>招标文件预览</strong>
+          {fileContent && (
+            <div className="document-view-tabs">
+              <button
+                type="button"
+                className={`document-view-tab${viewMode === 'pdf' ? ' is-active' : ''}`}
+                onClick={() => setViewMode('pdf')}
+                disabled={!hasPdfPreview}
+              >
+                PDF
+              </button>
+              <button
+                type="button"
+                className={`document-view-tab${viewMode === 'markdown' ? ' is-active' : ''}`}
+                onClick={() => setViewMode('markdown')}
+              >
+                Markdown
+              </button>
+            </div>
+          )}
+          <span>{fileContent ? `原始文件: ${decodeURIComponent(fileName)}` : '等待上传'}</span>
         </div>
 
         {fileContent ? (
-          <div className="markdown-viewer">
-            <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>
-              {fileContent}
-            </ReactMarkdown>
+          <div className="document-preview-container">
+            {renderDocumentPreview()}
           </div>
         ) : (
-          <div className="markdown-empty-state">
+          <div className="document-empty-state">
             <strong>尚未导入招标文件</strong>
-            <p>当前步骤只负责把招标文件解析成 Markdown。下一步再基于这里的 Markdown 内容进行 AI 标书理解。</p>
+            <p>支持格式：PDF、DOCX、DOC、WPS、Markdown</p>
+            <p>上传后将自动转换为 PDF 预览，并解析为文本供 AI 分析</p>
           </div>
         )}
       </section>
